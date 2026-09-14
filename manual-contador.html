@@ -1,0 +1,598 @@
+<title>Manual del Contador</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#f6f6fb; --surface:#ffffff; --surface-2:#edecf7; --surface-3:#e4e2f2;
+    --ink:#1c1b2e; --ink-2:#4a4860; --ink-3:#8482a0;
+    --border:#dedcef; --border-2:#cac7e6;
+    --accent:#4f46e5; --accent-ink:#ffffff; --accent-soft:#eeedfd; --accent-soft-ink:#3a33b8;
+    --good:#16a34a; --good-soft:#e7f7ed;
+    --bad:#dc2626; --bad-soft:#fdecec;
+    --warn:#b45309; --warn-soft:#fdf1de;
+    --shadow: 0 1px 2px rgba(28,27,46,.04), 0 8px 24px -12px rgba(28,27,46,.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#131220; --surface:#1a1929; --surface-2:#211f35; --surface-3:#2a2841;
+      --ink:#f1f0fa; --ink-2:#c6c4dc; --ink-3:#8d8aa8;
+      --border:#332f4e; --border-2:#413c60;
+      --accent:#8b83f2; --accent-ink:#131220; --accent-soft:#241f45; --accent-soft-ink:#b7b1f7;
+      --good:#4ade80; --good-soft:#16311f;
+      --bad:#f87171; --bad-soft:#3a1a1a;
+      --warn:#facc15; --warn-soft:#3a2d0f;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#131220; --surface:#1a1929; --surface-2:#211f35; --surface-3:#2a2841;
+    --ink:#f1f0fa; --ink-2:#c6c4dc; --ink-3:#8d8aa8;
+    --border:#332f4e; --border-2:#413c60;
+    --accent:#8b83f2; --accent-ink:#131220; --accent-soft:#241f45; --accent-soft-ink:#b7b1f7;
+    --good:#4ade80; --good-soft:#16311f;
+    --bad:#f87171; --bad-soft:#3a1a1a;
+    --warn:#facc15; --warn-soft:#3a2d0f;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    font-size:15px; line-height:1.6;
+    padding-inline:20px;
+  }
+  h1,h2,h3{ font-family:'Source Serif 4',Georgia,serif; text-wrap:balance; color:var(--ink); }
+  code,.mono,.tag-codigo,td.num,th.num{ font-family:'JetBrains Mono',ui-monospace,monospace; }
+  .num{ font-variant-numeric:tabular-nums; }
+  a{ color:var(--accent); }
+
+  .shell{ max-width:1180px; margin:0 auto; padding-block:28px 80px; display:grid; grid-template-columns:250px minmax(0,1fr); gap:36px; align-items:start; }
+  @media (max-width:900px){ .shell{ grid-template-columns:1fr; } }
+
+  /* ── Header ───────────────────────────────────────────────── */
+  .masthead{ grid-column:1/-1; display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; border-bottom:1px solid var(--border); padding-bottom:20px; margin-bottom:4px; }
+  .eyebrow{ font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin-bottom:6px; }
+  .masthead h1{ font-size:32px; font-weight:700; margin:0 0 6px; }
+  .masthead .sub{ color:var(--ink-2); font-size:14.5px; max-width:56ch; }
+  .corte-badge{ flex-shrink:0; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 16px; text-align:right; box-shadow:var(--shadow); }
+  .corte-badge .lbl{ font-size:10px; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); font-weight:600; }
+  .corte-badge .val{ font-family:'JetBrains Mono',monospace; font-weight:600; font-size:15px; color:var(--accent); }
+
+  /* ── Sidebar nav ──────────────────────────────────────────── */
+  nav.toc{ position:sticky; top:20px; align-self:start; display:flex; flex-direction:column; gap:2px; }
+  @media (max-width:900px){ nav.toc{ position:static; flex-direction:row; flex-wrap:wrap; gap:8px; margin-bottom:8px; } }
+  nav.toc .grp-label{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); margin:16px 0 6px; }
+  nav.toc .grp-label:first-child{ margin-top:0; }
+  @media (max-width:900px){ nav.toc .grp-label{ display:none; } }
+  nav.toc a{ display:block; padding:6px 10px; border-radius:8px; color:var(--ink-2); text-decoration:none; font-size:13px; font-weight:500; }
+  nav.toc a:hover{ background:var(--surface-2); color:var(--ink); }
+  @media (max-width:900px){ nav.toc a{ background:var(--surface); border:1px solid var(--border); } }
+
+  main{ min-width:0; display:flex; flex-direction:column; gap:14px; }
+
+  .intro{ background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px 22px; box-shadow:var(--shadow); }
+  .intro p{ color:var(--ink-2); margin:0 0 10px; max-width:70ch; }
+  .intro p:last-child{ margin-bottom:0; }
+  .intro strong{ color:var(--ink); }
+  .split-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+  @media (max-width:640px){ .split-row{ grid-template-columns:1fr; } }
+  .pill{ display:flex; gap:10px; align-items:flex-start; padding:12px 14px; border-radius:10px; }
+  .pill.solo{ background:var(--good-soft); }
+  .pill.manual{ background:var(--accent-soft); }
+  .pill .ico{ font-size:17px; line-height:1.3; }
+  .pill .t{ font-weight:600; font-size:13px; margin-bottom:2px; }
+  .pill.solo .t{ color:var(--good); }
+  .pill.manual .t{ color:var(--accent-soft-ink); }
+  .pill .d{ font-size:12.5px; color:var(--ink-2); }
+
+  section.grp{ margin-top:26px; }
+  section.grp h2{ font-size:12px; text-transform:uppercase; letter-spacing:.08em; font-weight:700; color:var(--ink-3); margin:0 0 12px; padding-top:6px; }
+
+  article.task{ scroll-margin-top:20px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:22px 24px; box-shadow:var(--shadow); margin-bottom:14px; }
+  article.task header.th{ display:flex; align-items:center; gap:12px; margin-bottom:4px; flex-wrap:wrap; }
+  article.task .icon{ width:38px; height:38px; border-radius:10px; background:var(--accent-soft); color:var(--accent-soft-ink); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  article.task h3{ font-size:19px; font-weight:600; margin:0; }
+  .where{ font-size:11.5px; color:var(--ink-3); font-family:'JetBrains Mono',monospace; background:var(--surface-2); border-radius:6px; padding:2px 8px; margin-left:auto; white-space:nowrap; }
+  article.task > .desc{ color:var(--ink-2); font-size:14px; margin:10px 0 4px; max-width:68ch; }
+
+  .who{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; margin-top:10px; }
+  .who.rw{ background:var(--accent-soft); color:var(--accent-soft-ink); }
+  .who.ro{ background:var(--surface-2); color:var(--ink-3); }
+
+  ol.steps{ list-style:none; margin:16px 0 0; padding:0; counter-reset:step; display:flex; flex-direction:column; gap:0; }
+  ol.steps li{ counter-increment:step; position:relative; padding:0 0 16px 34px; border-left:1.5px solid var(--border); margin-left:13px; }
+  ol.steps li:last-child{ border-left-color:transparent; padding-bottom:0; }
+  ol.steps li::before{ content:counter(step); position:absolute; left:-13px; top:-1px; width:26px; height:26px; border-radius:50%; background:var(--accent); color:var(--accent-ink); font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; display:flex; align-items:center; justify-content:center; }
+  ol.steps li .stitle{ font-weight:600; font-size:14px; margin-bottom:2px; }
+  ol.steps li .sdesc{ color:var(--ink-2); font-size:13.5px; max-width:64ch; }
+  ol.steps li .sdesc code{ background:var(--surface-2); padding:1px 6px; border-radius:5px; font-size:12.5px; }
+
+  .callout{ display:flex; gap:10px; align-items:flex-start; border-radius:10px; padding:12px 14px; font-size:13px; margin-top:14px; }
+  .callout.tip{ background:var(--accent-soft); color:var(--accent-soft-ink); }
+  .callout.warn{ background:var(--warn-soft); color:var(--warn); }
+  .callout.no{ background:var(--bad-soft); color:var(--bad); }
+  .callout .ico{ flex-shrink:0; }
+  .callout b{ font-weight:700; }
+
+  .example{ margin-top:16px; border:1px dashed var(--border-2); border-radius:10px; padding:14px 16px; background:var(--surface-2); }
+  .example .lbl{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:8px; }
+  table.led{ width:100%; border-collapse:collapse; font-size:13px; }
+  table.led th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-3); font-weight:600; padding:0 8px 6px; border-bottom:1px solid var(--border-2); }
+  table.led td{ padding:6px 8px; border-bottom:1px solid var(--border); }
+  table.led tr:last-child td{ border-bottom:none; }
+  table.led td.right, table.led th.right{ text-align:right; }
+  table.led td.acct{ color:var(--ink-2); }
+  table.led td.acct .code{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-3); margin-right:6px; }
+
+  .readbox{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+  .readrow{ display:flex; justify-content:space-between; gap:16px; padding:9px 0; border-bottom:1px solid var(--border); font-size:13.5px; }
+  .readrow:last-child{ border-bottom:none; }
+  .readrow .k{ color:var(--ink-2); max-width:60%; }
+  .readrow .v{ color:var(--ink); font-weight:500; text-align:right; }
+
+  /* ── Appendix: plan de cuentas ────────────────────────────── */
+  .appendix{ margin-top:8px; }
+  .coa{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  .coa th{ position:sticky; top:0; background:var(--surface); text-align:left; font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); font-weight:700; padding:8px 10px; border-bottom:1px solid var(--border-2); }
+  .coa td{ padding:6px 10px; border-bottom:1px solid var(--border); }
+  .coa tr.n1 td{ font-weight:700; background:var(--surface-3); }
+  .coa tr.n2 td{ font-weight:600; color:var(--ink-2); background:var(--surface-2); }
+  .coa tr.n3 td{ color:var(--ink-2); }
+  .coa tr.n4 td.nombre{ padding-left:28px; }
+  .coa td.codigo{ font-family:'JetBrains Mono',monospace; color:var(--ink-3); white-space:nowrap; }
+  .coa tr.n4 td.codigo{ color:var(--accent); font-weight:500; }
+  .coa td.tag{ text-align:right; }
+  .coa .post-tag{ font-size:10px; font-weight:600; background:var(--accent-soft); color:var(--accent-soft-ink); padding:2px 7px; border-radius:5px; white-space:nowrap; }
+  .coa-wrap{ overflow-x:auto; background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); max-height:520px; overflow-y:auto; }
+
+  footer.pagefoot{ grid-column:1/-1; margin-top:40px; padding-top:18px; border-top:1px solid var(--border); font-size:12px; color:var(--ink-3); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+
+  /* ── Procedimientos (flujos multi-pantalla) ──────────────────── */
+  .routechips{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:12px; }
+  .routechips .chip{ font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:999px; background:var(--surface-2); color:var(--ink-2); font-family:'JetBrains Mono',monospace; white-space:nowrap; }
+  .routechips .arrow{ color:var(--ink-3); font-size:12px; }
+  .freq{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; margin-top:10px; margin-left:8px; }
+  .freq.diaria,.freq.semanal{ background:var(--surface-2); color:var(--ink-2); }
+  .freq.mensual{ background:var(--accent-soft); color:var(--accent-soft-ink); }
+  .freq.anual{ background:var(--warn-soft); color:var(--warn); }
+  .freq.unica{ background:var(--good-soft); color:var(--good); }
+  article.task.proc{ border-left:3px solid var(--accent); }
+  .num-pill{ display:flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:var(--surface-3); color:var(--ink-2); font-size:11px; font-weight:700; flex-shrink:0; }
+
+  /* ── Impresión / PDF ──────────────────────────────────────────── */
+  @media print{
+    nav.toc{ display:none; }
+    .shell{ grid-template-columns:1fr; max-width:100%; padding-block:0; gap:0; }
+    body{ padding-inline:0; font-size:12.5px; }
+    .masthead{ padding-bottom:14px; }
+    .masthead h1{ font-size:26px; }
+    main{ gap:10px; }
+    article.task,.intro,.coa-wrap{ box-shadow:none; break-inside:avoid; }
+    section.grp{ break-inside:avoid-page; }
+    section.grp.appendix{ break-inside:auto; }
+    .coa-wrap{ max-height:none; overflow:visible; }
+    .coa th{ position:static; }
+    a{ text-decoration:none; }
+    .masthead{ break-after:avoid; }
+  }
+</style>
+
+<div class="shell">
+  <div class="masthead">
+    <div>
+      <div class="eyebrow">DISABI ERP · Contabilidad</div>
+      <h1>Manual del Contador</h1>
+      <div class="sub">Guía de cada pantalla del libro contable — qué hace sola, qué capturas tú — y el paso a paso de cada procedimiento contable de principio a fin.</div>
+    </div>
+    <div class="corte-badge">
+      <div class="lbl">Corte contable</div>
+      <div class="val">2026-11-01</div>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="grp-label">Se genera solo</div>
+    <a href="#diario">Libro Diario</a>
+    <a href="#mayor">Libro Mayor</a>
+    <a href="#comprobacion">Balance de Comprobación</a>
+    <a href="#general">Balance General</a>
+    <a href="#resultados">Estado de Resultados</a>
+    <div class="grp-label">Tú lo capturas</div>
+    <a href="#activos">Activos Fijos</a>
+    <a href="#manual">Asiento Manual</a>
+    <a href="#cierre">Cierre de Ejercicio</a>
+    <div class="grp-label">Módulos relacionados</div>
+    <a href="#mes">Cierre Mensual</a>
+    <a href="#apertura">Asiento de Apertura</a>
+    <div class="grp-label">Procedimientos paso a paso</div>
+    <a href="#proc-revision">Revisión Rápida</a>
+    <a href="#proc-mes">Cierre Mensual completo</a>
+    <a href="#proc-depreciacion">Depreciación Mensual</a>
+    <a href="#proc-iva">IVA Neto Mensual</a>
+    <a href="#proc-ejercicio">Cierre de Ejercicio Fiscal</a>
+    <a href="#proc-apertura">Asiento de Apertura</a>
+    <div class="grp-label">Referencia</div>
+    <a href="#plan">Plan de Cuentas</a>
+  </nav>
+
+  <main>
+    <div class="intro">
+      <p><strong>Contabilidad</strong> es el libro de partida doble de DISABI: cada venta, compra, gasto, pago de
+      planilla, comisión y abono ya se contabiliza solo, en el momento en que ocurre, con la cuenta correcta —
+      ningún módulo del ERP te pide que captures un asiento por su cuenta.</p>
+      <p>Solo dos cosas dependen de ti: los <strong>asientos manuales</strong> (depreciación, provisiones,
+      correcciones, reclasificaciones — todo lo que no nace de una transacción operativa) y el
+      <strong>cierre de cada ejercicio</strong>. El resto de esta guía es cómo leer los cinco reportes que ya
+      están llenos, y cómo usar esas dos pantallas cuando te toque.</p>
+      <div class="split-row" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+        <div class="pill solo"><span class="ico">⚙️</span><div><div class="t">Se genera solo</div><div class="d">Diario, Mayor, Comprobación, Balance General, Estado de Resultados</div></div></div>
+        <div class="pill manual"><span class="ico">✍️</span><div><div class="t">Lo capturas tú</div><div class="d">Activos Fijos, Asiento Manual y Cierre de Ejercicio — las tres pantallas con botones de guardar</div></div></div>
+        <div class="pill manual" style="background:var(--warn-soft);"><span class="ico">🧭</span><div><div class="t" style="color:var(--warn);">Procedimientos</div><div class="d">6 flujos completos, paso a paso, con periodicidad: diarios, mensuales, anuales y únicos — <a href="#proc-revision">ir a la sección</a></div></div></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ SE GENERA SOLO ══════════════ -->
+    <section class="grp">
+      <h2>Reportes — se generan solos</h2>
+
+      <article class="task" id="diario">
+        <header class="th"><div class="icon">📖</div><h3>Libro Diario</h3><span class="where">Contabilidad → 📖 Libro Diario</span></header>
+        <p class="desc">Todos los asientos del período elegido, en orden cronológico, con sus líneas de Debe y
+        Haber. Es el registro cronológico completo — automáticos y manuales aparecen mezclados por fecha.</p>
+        <div class="readbox">
+          <div class="readrow"><span class="k">Desde / Hasta</span><span class="v">Filtran por fecha del asiento, no de captura</span></div>
+          <div class="readrow"><span class="k">Cada bloque</span><span class="v">Fecha + concepto del asiento, con sus cuentas indentadas debajo</span></div>
+          <div class="readrow"><span class="k">Columna Origen</span><span class="v">Tabla de donde nació — <code>disabi_ventas</code>, <code>disabi_asientos_manuales</code>, etc.</span></div>
+          <div class="readrow"><span class="k">Fila de Totales</span><span class="v">Debe y Haber del rango completo — siempre deben coincidir</span></div>
+        </div>
+        <div class="callout tip"><span class="ico">💡</span><span>Úsalo para auditar un día o una semana específica, o para verificar que una transacción puntual (una venta, un gasto) se contabilizó donde esperabas.</span></div>
+      </article>
+
+      <article class="task" id="mayor">
+        <header class="th"><div class="icon">📚</div><h3>Libro Mayor</h3><span class="where">Contabilidad → 📚 Libro Mayor</span></header>
+        <p class="desc">El historial de UNA cuenta contable: eliges la cuenta en el selector y ves cada
+        movimiento con su saldo acumulado, línea por línea.</p>
+        <div class="readbox">
+          <div class="readrow"><span class="k">Saldo inicial</span><span class="v">Todo lo posteado en esa cuenta antes de la fecha "Desde"</span></div>
+          <div class="readrow"><span class="k">Movimientos</span><span class="v">Cada línea del rango, con su saldo corriendo a la derecha</span></div>
+          <div class="readrow"><span class="k">Saldo final</span><span class="v">Resaltado al pie de la tabla</span></div>
+        </div>
+        <div class="callout tip"><span class="ico">💡</span><span>Es tu herramienta principal para conciliar una cuenta específica — por ejemplo, confirmar que el saldo de <span class="mono">110102 Bancos</span> coincide con el estado de cuenta del banco.</span></div>
+      </article>
+
+      <article class="task" id="comprobacion">
+        <header class="th"><div class="icon">🧮</div><h3>Balance de Comprobación</h3><span class="where">Contabilidad → 🧮 Balance de Comprobación</span></header>
+        <p class="desc">Todas las cuentas con movimiento en el rango, con su Debe, Haber y Saldo — el chequeo
+        clásico de que el libro entero sigue cuadrado.</p>
+        <div class="callout warn"><span class="ico">⚠️</span><span><b>Si el indicador dice "No cuadra"</b>, algo está mal a nivel de sistema (no debería poder pasar — hay un candado en la base de datos que lo impide). Repórtalo a soporte antes de confiar en cualquier otro reporte del período.</span></div>
+      </article>
+
+      <article class="task" id="general">
+        <header class="th"><div class="icon">🏛️</div><h3>Balance General</h3><span class="where">Contabilidad → 🏛️ Balance General</span></header>
+        <p class="desc">Activo, Pasivo y Patrimonio acumulados desde el corte contable hasta la fecha que elijas —
+        el balance de situación clásico, agrupado por Corriente / No Corriente.</p>
+        <div class="readbox">
+          <div class="readrow"><span class="k">Solo tiene "Hasta"</span><span class="v">No es un rango — siempre es acumulado desde el corte contable</span></div>
+          <div class="readrow"><span class="k">"Utilidad del Ejercicio actual (calculada)"</span><span class="v">Ingresos − Costos − Gastos desde el último cierre de ejercicio (o desde el corte, si nunca has cerrado uno)</span></div>
+          <div class="readrow"><span class="k">Utilidades Retenidas</span><span class="v">Incluye automáticamente la utilidad de cualquier ejercicio ya cerrado — sin que tengas que sumarla a mano</span></div>
+        </div>
+        <div class="callout tip"><span class="ico">💡</span><span>El indicador de cuadre (Activo = Pasivo + Patrimonio) es tu primera verificación cada vez que lo abras.</span></div>
+      </article>
+
+      <article class="task" id="resultados">
+        <header class="th"><div class="icon">📊</div><h3>Estado de Resultados</h3><span class="where">Contabilidad → 📊 Estado de Resultados</span></header>
+        <p class="desc">Ingresos − Costo de Ventas = Utilidad Bruta − Gastos Operativos = Utilidad Neta, para
+        cualquier rango de fechas que elijas — mensual, trimestral, o el ejercicio completo.</p>
+        <div class="readbox">
+          <div class="readrow"><span class="k">Gastos Operativos</span><span class="v">Vienen agrupados por Gastos de Venta / Administración / Financieros</span></div>
+          <div class="readrow"><span class="k">Cuentas contrarias</span><span class="v">Devoluciones y Descuentos sobre Ventas ya vienen restadas dentro de "Total Ingresos" — no las busques aparte</span></div>
+        </div>
+      </article>
+    </section>
+
+    <!-- ══════════════ LO CAPTURAS TÚ ══════════════ -->
+    <section class="grp">
+      <h2>Lo que tú capturas</h2>
+
+      <article class="task" id="activos">
+        <header class="th"><div class="icon">🏗️</div><h3>Activos Fijos</h3><span class="where">Contabilidad → 🏗️ Activos Fijos</span></header>
+        <p class="desc">El subledger de mobiliario, equipo y demás activos de la empresa. Registras cada activo
+        una sola vez — costo, valor residual y vida útil — y desde ese momento su depreciación mensual se calcula
+        y se contabiliza sola con un solo botón, en vez de calcularla a mano cada mes.</p>
+        <span class="who rw">👤 admin y finanzas — pueden capturar</span>
+
+        <ol class="steps">
+          <li><div class="stitle">Registra el activo una vez</div><div class="sdesc">Nombre, fecha de adquisición, costo, valor residual (puede ser $0) y vida útil en meses. El sistema calcula la cuota de línea recta: <code>(Costo − Valor residual) ÷ Vida útil</code>.</div></li>
+          <li><div class="stitle">Cada mes, presiona Generar Depreciación</div><div class="sdesc">Un solo botón calcula la cuota de <b>todos</b> los activos vigentes ese mes y postea (o resincroniza) el asiento de cada uno contra <code>6205 Otros Gastos Operativos</code> / <code>1202 Depreciación Acumulada</code>. Ya no hace falta capturarlo como Asiento Manual.</div></li>
+          <li><div class="stitle">Revisa la tabla de activos</div><div class="sdesc">Cada fila muestra la depreciación acumulada real (la suma de lo ya contabilizado, no una fórmula) y el valor en libros. El estado pasa a <b>Completado</b> cuando termina su vida útil.</div></li>
+          <li><div class="stitle">Da de baja en vez de eliminar</div><div class="sdesc">Si un activo se vende o se descarta, dale de baja con su fecha — deja de generar depreciación hacia adelante pero conserva su historial. Solo se puede <b>eliminar</b> un activo que nunca tuvo depreciación contabilizada.</div></li>
+        </ol>
+
+        <div class="callout tip"><span class="ico">💡</span><span>Es normal correr "Generar Depreciación" varias veces para el mismo mes si corriges el costo o la vida útil de un activo antes de cerrarlo — resincroniza en vez de duplicar.</span></div>
+      </article>
+
+      <article class="task" id="manual">
+        <header class="th"><div class="icon">✍️</div><h3>Asiento Manual</h3><span class="where">Contabilidad → ✍️ Asiento Manual</span></header>
+        <p class="desc">Para todo lo que no tiene un origen operativo automático: depreciación, provisiones,
+        correcciones, reclasificaciones entre cuentas.</p>
+        <span class="who rw">👤 admin y finanzas — pueden capturar</span>
+
+        <ol class="steps">
+          <li><div class="stitle">Fecha y concepto</div><div class="sdesc">La fecha no puede ser anterior al <code>2026-11-01</code> (corte contable) ni caer en un mes ya cerrado en Finanzas. El concepto es el texto que vas a ver después en el Libro Diario.</div></li>
+          <li><div class="stitle">Agrega las líneas</div><div class="sdesc">Cada línea es una cuenta del plan (ver el <a href="#plan">apéndice</a>) con un monto en Debe o en Haber — nunca ambos en la misma línea. Usa <code>+ Agregar línea</code> si necesitas más de dos.</div></li>
+          <li><div class="stitle">Verifica que cuadre</div><div class="sdesc">El indicador junto al botón cambia a <b>✅ Cuadra</b> solo cuando el total de Debe es igual al total de Haber. El botón <code>💾 Contabilizar</code> no se activa antes de eso.</div></li>
+          <li><div class="stitle">Contabilizar</div><div class="sdesc">El asiento queda posteado de inmediato y aparece tanto en la lista de abajo como en el Libro Diario.</div></li>
+        </ol>
+
+        <div class="example">
+          <div class="lbl">Ejemplo — provisión de un gasto todavía no facturado</div>
+          <table class="led">
+            <thead><tr><th>Cuenta</th><th class="right">Debe</th><th class="right">Haber</th></tr></thead>
+            <tbody>
+              <tr><td class="acct"><span class="code">6205</span>Otros Gastos Operativos</td><td class="right num">$120.00</td><td class="right num">—</td></tr>
+              <tr><td class="acct"><span class="code">2107</span>CxP — Gastos Operativos</td><td class="right num">—</td><td class="right num">$120.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout no"><span class="ico">🚫</span><span><b>No lo uses</b> para una venta, un gasto, una planilla o cualquier cosa que ya se registra en su propio módulo (Ventas, Finanzas, Planilla…) — esas se postean solas y duplicarlas aquí descuadraría tus reportes operativos con los contables. Tampoco para <b>depreciación</b> — eso tiene su propia pantalla, <a href="#activos">Activos Fijos</a>.</span></div>
+        <div class="callout tip"><span class="ico">💡</span><span>¿Te equivocaste? Bórralo desde la lista de "Últimos asientos manuales" (🗑️) y vuelve a capturarlo — no hay edición en línea, solo borrar y recrear.</span></div>
+      </article>
+
+      <article class="task" id="cierre">
+        <header class="th"><div class="icon">🔒</div><h3>Cierre de Ejercicio</h3><span class="where">Contabilidad → 🔒 Cierre de Ejercicio</span></header>
+        <p class="desc">Cierra formalmente un ejercicio fiscal: calcula su utilidad neta y la traslada a
+        Utilidades Retenidas, sin tocar ni revertir ningún asiento histórico.</p>
+        <span class="who rw">👤 admin y finanzas — pueden cerrar</span>
+
+        <ol class="steps">
+          <li><div class="stitle">Revisa el ejercicio abierto</div><div class="sdesc">La parte de arriba de la pantalla ya te muestra, calculados, Ingresos / Costos / Gastos / Utilidad desde el último cierre (o desde el corte contable) hasta hoy.</div></li>
+          <li><div class="stitle">Cierra primero el mes en Finanzas</div><div class="sdesc">El sistema exige que el mes de tu fecha de cierre ya esté cerrado en <a href="#mes">Finanzas → Cierre Mensual</a> — si no, te lo dirá y no te dejará continuar.</div></li>
+          <li><div class="stitle">Elige "Cerrar hasta" y confirma</div><div class="sdesc">Agrega notas si quieres (ej. "Cierre fiscal 2026") y presiona <code>🔒 Cerrar Ejercicio</code>. Vas a tener que confirmar en un cuadro de diálogo — léelo, esto queda registrado permanentemente.</div></li>
+        </ol>
+
+        <div class="callout warn"><span class="ico">⚠️</span><span>Una vez cerrado, esa utilidad ya no aparece en el Estado de Resultados de otro rango que la abarque — vive en Utilidades Retenidas dentro del Balance General. Solo se puede reabrir el cierre <b>más reciente</b>, y solo para corregir un error real.</span></div>
+      </article>
+    </section>
+
+    <!-- ══════════════ RELACIONADOS ══════════════ -->
+    <section class="grp">
+      <h2>Módulos relacionados</h2>
+
+      <article class="task" id="mes">
+        <header class="th"><div class="icon">🗓️</div><h3>Cierre Mensual</h3><span class="where">Finanzas → Cierre Mensual</span></header>
+        <p class="desc">Bloquea la creación y edición de movimientos con fecha dentro de un mes ya reportado —
+        en todos los módulos, no solo Contabilidad. Es un requisito para poder cerrar un ejercicio: el
+        sistema no te deja cerrar el ejercicio si su último mes sigue abierto.</p>
+        <div class="callout tip"><span class="ico">💡</span><span>Reabrir un mes quita el bloqueo — solo para corregir un error, no para uso rutinario.</span></div>
+      </article>
+
+      <article class="task" id="apertura">
+        <header class="th"><div class="icon">📒</div><h3>Asiento de Apertura</h3><span class="where">Finanzas → Apertura → 📒 Generar Asiento de Apertura</span></header>
+        <p class="desc">Genera el único asiento que establece el punto de partida del libro: Banco + CxC +
+        Inventario (Debe) contra CxP + Utilidades Retenidas como diferencia (Haber), a partir de los saldos
+        que se cargan en esa misma pantalla. Se puede volver a presionar sin duplicar — resincroniza el mismo
+        asiento cada vez.</p>
+      </article>
+    </section>
+
+    <!-- ══════════════ PROCEDIMIENTOS CONTABLES ══════════════ -->
+    <section class="grp" id="procedimientos">
+      <h2>Procedimientos contables — paso a paso</h2>
+      <p style="color:var(--ink-2); font-size:13.5px; margin:-4px 0 4px; max-width:70ch;">Lo de arriba explica qué hace cada pantalla por separado. Esto es el flujo completo: qué
+      pantallas visitas, en qué orden, y con qué frecuencia, para ejecutar cada tarea contable real de principio a fin.</p>
+
+      <article class="task proc" id="proc-revision">
+        <header class="th"><div class="icon">🔍</div><h3>Revisión Rápida</h3><span class="freq diaria">Diaria / semanal</span></header>
+        <p class="desc">Un chequeo de 5 minutos para detectar un problema mientras todavía es fácil de corregir — no esperes al cierre de mes para descubrir que algo no cuadra.</p>
+        <div class="routechips"><span class="chip">Balance de Comprobación</span><span class="arrow">→</span><span class="chip">Libro Diario</span><span class="arrow">→</span><span class="chip">Libro Mayor</span></div>
+
+        <ol class="steps">
+          <li><div class="stitle">Abre el Balance de Comprobación del día o la semana</div><div class="sdesc">Confirma que el indicador dice <b>Cuadra</b>. Si no, detente aquí y repórtalo — no tiene sentido revisar nada más hasta resolver eso.</div></li>
+          <li><div class="stitle">Recorre el Libro Diario del mismo rango</div><div class="sdesc">Lectura rápida: ¿las cuentas usadas tienen sentido para cada concepto? ¿hay algún monto que salta a la vista por ser demasiado alto o demasiado bajo?</div></li>
+          <li><div class="stitle">Revisa el Libro Mayor de tus cuentas críticas</div><div class="sdesc">Como mínimo <code>110102 Bancos</code> y <code>110201 CxC Clientes</code> — confirma que el saldo corriendo se mueve como esperabas.</div></li>
+        </ol>
+        <div class="callout tip"><span class="ico">💡</span><span>Esta revisión no reemplaza el Cierre Mensual — es para atrapar errores temprano, no para cerrar nada.</span></div>
+      </article>
+
+      <article class="task proc" id="proc-mes">
+        <header class="th"><div class="icon">🗓️</div><h3>Cierre Mensual completo</h3><span class="freq mensual">Mensual</span></header>
+        <p class="desc">El procedimiento que corres al final de cada mes, antes de dar el mes por cerrado. Reúne conciliación bancaria, asientos manuales pendientes y el candado de Cierre Mensual.</p>
+        <div class="routechips"><span class="chip">Finanzas → Conciliación</span><span class="arrow">→</span><span class="chip">Activos Fijos</span><span class="arrow">→</span><span class="chip">Asiento Manual</span><span class="arrow">→</span><span class="chip">Balance de Comprobación</span><span class="arrow">→</span><span class="chip">Estado de Resultados</span><span class="arrow">→</span><span class="chip">Balance General</span><span class="arrow">→</span><span class="chip">Finanzas → Cierre Mensual</span></div>
+        <span class="who rw">👤 admin y finanzas</span>
+
+        <ol class="steps">
+          <li><div class="stitle">Concilia el banco</div><div class="sdesc">En <b>Finanzas → Conciliación</b>, sube o registra los movimientos del estado de cuenta del mes y márcalos contra los movimientos del ERP hasta llegar lo más cerca posible de 100% conciliado. Cualquier diferencia real (cargos bancarios, intereses) que aún no esté en el sistema, regístrala ahí mismo.</div></li>
+          <li><div class="stitle">Genera la depreciación del mes</div><div class="sdesc">En <a href="#activos">Activos Fijos</a>, presiona <code>📉 Generar Depreciación</code> para el período — ver el <a href="#proc-depreciacion">procedimiento</a>.</div></li>
+          <li><div class="stitle">Registra los asientos manuales del mes</div><div class="sdesc">Provisiones, correcciones o reclasificaciones que correspondan a este mes — en <a href="#manual">Asiento Manual</a>, con fecha dentro del mes que vas a cerrar.</div></li>
+          <li><div class="stitle">Calcula y registra el IVA neto del mes</div><div class="sdesc">Sigue el <a href="#proc-iva">procedimiento de IVA Neto Mensual</a> antes de continuar — el saldo de <code>2103 IVA por Pagar</code> debe quedar correcto antes de cerrar.</div></li>
+          <li><div class="stitle">Revisa que el mes cuadre</div><div class="sdesc">Abre el <a href="#comprobacion">Balance de Comprobación</a> con el rango del mes completo y confirma <b>Cuadra</b>.</div></li>
+          <li><div class="stitle">Revisa los reportes del mes</div><div class="sdesc">Da un vistazo al <a href="#resultados">Estado de Resultados</a> y al <a href="#general">Balance General</a> del mes — es tu última oportunidad de detectar algo raro antes de que quede bloqueado.</div></li>
+          <li><div class="stitle">Cierra el mes</div><div class="sdesc">En <a href="#mes">Finanzas → Cierre Mensual</a>, marca el mes como cerrado. Desde ese momento, ningún módulo del ERP permite crear ni editar movimientos con fecha dentro de ese mes.</div></li>
+        </ol>
+        <div class="callout warn"><span class="ico">⚠️</span><span>Haz este procedimiento <b>en este orden</b> y de último el cierre del paso 6 — es la acción que bloquea el mes, así que todo lo demás debe estar terminado antes.</span></div>
+      </article>
+
+      <article class="task proc" id="proc-depreciacion">
+        <header class="th"><div class="icon">📉</div><h3>Depreciación Mensual</h3><span class="freq mensual">Mensual</span></header>
+        <p class="desc">El sistema calcula la depreciación de línea recta solo, a partir de lo que registraste en <a href="#activos">Activos Fijos</a> — este procedimiento es corto porque el trabajo pesado (el cálculo) ya no lo haces tú.</p>
+        <div class="routechips"><span class="chip">Activos Fijos (una vez, al comprar)</span><span class="arrow">→</span><span class="chip">Generar Depreciación (cada mes)</span></div>
+        <span class="who rw">👤 admin y finanzas</span>
+
+        <ol class="steps">
+          <li><div class="stitle">Registra cada activo nuevo, una sola vez</div><div class="sdesc">En <a href="#activos">Activos Fijos</a>, apenas lo compres: nombre, fecha de adquisición, costo, valor residual y vida útil en meses. No hace falta volver a tocarlo cada mes.</div></li>
+          <li><div class="stitle">Cada mes, presiona Generar Depreciación</div><div class="sdesc">Elige el período (YYYY-MM) y presiona <code>📉 Generar Depreciación</code>. El sistema calcula la cuota de cada activo vigente ese mes y postea un asiento por activo contra <code>6205</code> / <code>1202</code>.</div></li>
+          <li><div class="stitle">Revisa la tabla de activos</div><div class="sdesc">Confirma que la columna "Acumulada" avanzó para los activos que correspondía, y que el estado pasa a <b>Completado</b> cuando un activo termina su vida útil (deja de generar cuota sola).</div></li>
+        </ol>
+
+        <div class="example">
+          <div class="lbl">Ejemplo — dos activos vigentes en el mismo período</div>
+          <table class="led">
+            <thead><tr><th>Activo</th><th class="right">Costo</th><th class="right">Vida útil</th><th class="right">Cuota mensual</th></tr></thead>
+            <tbody>
+              <tr><td class="acct">Mobiliario de local</td><td class="right num">$2,700.00</td><td class="right num">60 meses</td><td class="right num">$45.00</td></tr>
+              <tr><td class="acct">Equipo de cómputo</td><td class="right num">$1,440.00</td><td class="right num">48 meses</td><td class="right num">$30.00</td></tr>
+            </tbody>
+          </table>
+          <div class="lbl" style="margin-top:12px;">Lo que el botón postea (un asiento por activo)</div>
+          <table class="led">
+            <thead><tr><th>Cuenta</th><th class="right">Debe</th><th class="right">Haber</th></tr></thead>
+            <tbody>
+              <tr><td class="acct"><span class="code">6205</span>Otros Gastos Operativos — Mobiliario</td><td class="right num">$45.00</td><td class="right num">—</td></tr>
+              <tr><td class="acct"><span class="code">1202</span>Depreciación Acumulada — Mobiliario</td><td class="right num">—</td><td class="right num">$45.00</td></tr>
+              <tr><td class="acct"><span class="code">6205</span>Otros Gastos Operativos — Cómputo</td><td class="right num">$30.00</td><td class="right num">—</td></tr>
+              <tr><td class="acct"><span class="code">1202</span>Depreciación Acumulada — Cómputo</td><td class="right num">—</td><td class="right num">$30.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout tip"><span class="ico">💡</span><span>Puedes volver a presionar "Generar Depreciación" del mismo período sin duplicar — resincroniza, útil si corriges el costo o la vida útil de un activo antes de cerrar el mes.</span></div>
+      </article>
+
+      <article class="task proc" id="proc-iva">
+        <header class="th"><div class="icon">🧾</div><h3>Cálculo y Registro del IVA Neto Mensual</h3><span class="freq mensual">Mensual</span></header>
+        <p class="desc">Cada venta y cada compra gravada ya postea su IVA solo, pero el sistema no calcula ni registra el neto a pagar (o a favor) a Hacienda — eso es tuyo, cada mes.</p>
+        <div class="routechips"><span class="chip">Libro Mayor — 2102</span><span class="arrow">→</span><span class="chip">Libro Mayor — 1104</span><span class="arrow">→</span><span class="chip">Asiento Manual</span></div>
+        <span class="who rw">👤 admin y finanzas</span>
+
+        <ol class="steps">
+          <li><div class="stitle">Consulta el saldo del mes en 2102 IVA Débito Fiscal</div><div class="sdesc">En <a href="#mayor">Libro Mayor</a>, elige <code>2102</code> y filtra por el mes — ese es el IVA que cobraste en tus ventas gravadas.</div></li>
+          <li><div class="stitle">Consulta el saldo del mes en 1104 IVA Crédito Fiscal</div><div class="sdesc">Igual, pero con <code>1104</code> — el IVA que pagaste en tus compras e importaciones gravadas.</div></li>
+          <li><div class="stitle">Calcula el neto</div><div class="sdesc"><code>Débito Fiscal − Crédito Fiscal</code>. Positivo = a pagar a Hacienda. Negativo = crédito a favor que se traslada al mes siguiente (no captures el asiento del paso 4 en ese caso — consulta con tu asesor fiscal cómo arrastrarlo).</div></li>
+          <li><div class="stitle">Captura el asiento de liquidación en Asiento Manual</div><div class="sdesc">Fecha = último día del mes. Cancela ambas cuentas de IVA del mes contra <code>2103 IVA por Pagar</code> por la diferencia neta.</div></li>
+        </ol>
+
+        <div class="example">
+          <div class="lbl">Ejemplo — ventas gravadas $10,000, compras gravadas $4,000</div>
+          <table class="led">
+            <thead><tr><th></th><th class="right">Base</th><th class="right">IVA (13%)</th></tr></thead>
+            <tbody>
+              <tr><td class="acct"><span class="code">2102</span>Débito Fiscal (ventas)</td><td class="right num">$10,000.00</td><td class="right num">$1,300.00</td></tr>
+              <tr><td class="acct"><span class="code">1104</span>Crédito Fiscal (compras)</td><td class="right num">$4,000.00</td><td class="right num">$520.00</td></tr>
+            </tbody>
+          </table>
+          <div class="lbl" style="margin-top:12px;">Neto a pagar: $1,300.00 − $520.00 = $780.00</div>
+          <table class="led">
+            <thead><tr><th>Cuenta</th><th class="right">Debe</th><th class="right">Haber</th></tr></thead>
+            <tbody>
+              <tr><td class="acct"><span class="code">2102</span>IVA Débito Fiscal</td><td class="right num">$1,300.00</td><td class="right num">—</td></tr>
+              <tr><td class="acct"><span class="code">1104</span>IVA Crédito Fiscal</td><td class="right num">—</td><td class="right num">$520.00</td></tr>
+              <tr><td class="acct"><span class="code">2103</span>IVA por Pagar</td><td class="right num">—</td><td class="right num">$780.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout warn"><span class="ico">⚠️</span><span>El sistema no presenta la declaración F-07 ante Hacienda — este asiento solo refleja la obligación en el libro. La declaración y el pago se hacen por fuera; cuando pagues, registra la salida de banco en Finanzas contra <code>2103 IVA por Pagar</code> para cancelarlo.</span></div>
+      </article>
+
+      <article class="task proc" id="proc-ejercicio">
+        <header class="th"><div class="icon">🔒</div><h3>Cierre de Ejercicio Fiscal completo</h3><span class="freq anual">Anual</span></header>
+        <p class="desc">El procedimiento de fin de año: confirma que los doce meses están cerrados, que no queda nada pendiente de capturar, y traslada la utilidad del ejercicio a Utilidades Retenidas de forma permanente.</p>
+        <div class="routechips"><span class="chip">Finanzas → Cierre Mensual</span><span class="arrow">→</span><span class="chip">Asiento Manual</span><span class="arrow">→</span><span class="chip">Balance de Comprobación</span><span class="arrow">→</span><span class="chip">Estado de Resultados</span><span class="arrow">→</span><span class="chip">Cierre de Ejercicio</span><span class="arrow">→</span><span class="chip">Balance General</span></div>
+        <span class="who rw">👤 admin y finanzas</span>
+
+        <ol class="steps">
+          <li><div class="stitle">Confirma que todos los meses del ejercicio están cerrados</div><div class="sdesc">Revisa <a href="#mes">Finanzas → Cierre Mensual</a> — el sistema no te va a dejar cerrar el ejercicio si el mes de tu fecha "hasta" sigue abierto, así que ciérralos todos primero siguiendo el <a href="#proc-mes">Cierre Mensual completo</a> de cada uno.</div></li>
+          <li><div class="stitle">Verifica que no falte nada del año</div><div class="sdesc">Depreciación generada en <a href="#activos">Activos Fijos</a> y IVA neto de todos los meses, más cualquier provisión o ajuste de cierre de año (aguinaldo, vacaciones, estimaciones) que tu asesor fiscal te indique como Asiento Manual.</div></li>
+          <li><div class="stitle">Revisa el Balance de Comprobación del ejercicio completo</div><div class="sdesc">Rango desde el corte contable (o el cierre anterior) hasta la fecha de cierre — confirma <b>Cuadra</b>.</div></li>
+          <li><div class="stitle">Revisa el Estado de Resultados del ejercicio</div><div class="sdesc">Idealmente con tu asesor fiscal o auditor, antes de cerrar — una vez cerrado, esa utilidad ya no se puede recalcular desde este reporte para ese rango.</div></li>
+          <li><div class="stitle">Ve a Cierre de Ejercicio y confirma los totales</div><div class="sdesc">La pantalla te muestra Ingresos / Costos / Gastos / Utilidad ya calculados. Agrega una nota (ej. "Cierre fiscal 2026") y presiona <code>🔒 Cerrar Ejercicio</code>, confirmando en el cuadro de diálogo.</div></li>
+          <li><div class="stitle">Verifica el Balance General</div><div class="sdesc"><code>3102 Utilidades Retenidas</code> debe reflejar la utilidad recién cerrada, y "Utilidad del Ejercicio actual (calculada)" vuelve a partir de cero para el nuevo ejercicio que empieza al día siguiente.</div></li>
+        </ol>
+        <div class="callout no"><span class="ico">🚫</span><span>Este manual cubre el registro contable dentro del sistema. Los <b>libros legalizados</b> ante el Registro de Comercio, la <b>declaración de renta</b> y cualquier otro trámite legal o fiscal quedan fuera del alcance del ERP — consulta esos pasos con tu auditor o asesor legal.</span></div>
+      </article>
+
+      <article class="task proc" id="proc-apertura">
+        <header class="th"><div class="icon">📒</div><h3>Generar el Asiento de Apertura</h3><span class="freq unica">Única vez (o resincronizar)</span></header>
+        <p class="desc">El punto de partida del libro contable. Se ejecuta una sola vez al empezar a usar el sistema — o de nuevo, sin duplicar, si necesitas corregir los saldos iniciales.</p>
+        <div class="routechips"><span class="chip">Finanzas → Apertura</span><span class="arrow">→</span><span class="chip">Balance General</span></div>
+        <span class="who rw">👤 admin y finanzas</span>
+
+        <ol class="steps">
+          <li><div class="stitle">Reúne los saldos iniciales</div><div class="sdesc">Banco, Cuentas por Cobrar, Inventario y Cuentas por Pagar a la fecha de corte contable (<code>2026-11-01</code>), tomados de tus registros previos al ERP.</div></li>
+          <li><div class="stitle">Carga los saldos en Finanzas → Apertura</div><div class="sdesc">La misma pantalla donde vas a generar el asiento — revisa que cada monto esté correcto antes de continuar.</div></li>
+          <li><div class="stitle">Presiona Generar Asiento de Apertura</div><div class="sdesc">El sistema arma un único asiento: Banco + CxC + Inventario al Debe, contra CxP y Utilidades Retenidas (la diferencia, como cierre de patrimonio inicial) al Haber.</div></li>
+          <li><div class="stitle">Verifica en Balance General</div><div class="sdesc">Confirma que el indicador de cuadre (Activo = Pasivo + Patrimonio) aparece correcto desde el primer día.</div></li>
+        </ol>
+        <div class="callout tip"><span class="ico">💡</span><span>Si te equivocaste en un saldo inicial, corrígelo en Apertura y vuelve a presionar el botón — resincroniza el mismo asiento en vez de crear uno duplicado.</span></div>
+      </article>
+    </section>
+
+    <!-- ══════════════ PLAN DE CUENTAS ══════════════ -->
+    <section class="grp appendix" id="plan">
+      <h2>Referencia — Plan de Cuentas</h2>
+      <p style="color:var(--ink-2); font-size:13px; margin:-4px 0 14px; max-width:64ch;">Las cuentas marcadas <span class="post-tag" style="margin:0 4px;">se postea aquí</span> son las únicas donde puedes escribir un Asiento Manual — el resto son agrupadores de resumen.</p>
+      <div class="coa-wrap">
+        <table class="coa">
+          <thead><tr><th style="width:90px;">Código</th><th>Cuenta</th><th style="width:120px;" class="right">&nbsp;</th></tr></thead>
+          <tbody>
+            <tr class="n1"><td class="codigo">1</td><td class="nombre">ACTIVO</td><td class="tag"></td></tr>
+            <tr class="n2"><td class="codigo">11</td><td class="nombre">Activo Corriente</td><td class="tag"></td></tr>
+            <tr class="n3"><td class="codigo">1101</td><td class="nombre">Efectivo y Equivalentes de Efectivo</td><td class="tag"></td></tr>
+            <tr class="n4"><td class="codigo">110101</td><td class="nombre">Caja General</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n4"><td class="codigo">110102</td><td class="nombre">Bancos — Cuenta Corriente</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n4"><td class="codigo">110103</td><td class="nombre">Fondos en Tránsito — Pasarela (Link/POS)</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">1102</td><td class="nombre">Cuentas por Cobrar</td><td class="tag"></td></tr>
+            <tr class="n4"><td class="codigo">110201</td><td class="nombre">CxC Clientes Nacionales</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n4"><td class="codigo">110202</td><td class="nombre">Estimación para Cuentas Incobrables</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">1103</td><td class="nombre">Inventarios</td><td class="tag"></td></tr>
+            <tr class="n4"><td class="codigo">110301</td><td class="nombre">Inventario de Mercadería Disponible</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n4"><td class="codigo">110302</td><td class="nombre">Mercadería en Tránsito</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">1104</td><td class="nombre">IVA Crédito Fiscal</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">1105</td><td class="nombre">Gastos Pagados por Anticipado</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n2"><td class="codigo">12</td><td class="nombre">Activo No Corriente</td><td class="tag"></td></tr>
+            <tr class="n3"><td class="codigo">1201</td><td class="nombre">Propiedad, Planta y Equipo</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">1202</td><td class="nombre">Depreciación Acumulada</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+
+            <tr class="n1"><td class="codigo">2</td><td class="nombre">PASIVO</td><td class="tag"></td></tr>
+            <tr class="n2"><td class="codigo">21</td><td class="nombre">Pasivo Corriente</td><td class="tag"></td></tr>
+            <tr class="n3"><td class="codigo">2101</td><td class="nombre">Cuentas por Pagar Proveedores</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">2102</td><td class="nombre">IVA Débito Fiscal</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">2103</td><td class="nombre">IVA por Pagar (neto a Hacienda)</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">2104</td><td class="nombre">Retenciones y Cuotas Patronales por Pagar</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">2105</td><td class="nombre">Planilla por Pagar</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">2106</td><td class="nombre">Comisiones por Pagar</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">2107</td><td class="nombre">Cuentas por Pagar — Gastos Operativos</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">2108</td><td class="nombre">Anticipos de Clientes</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n2"><td class="codigo">22</td><td class="nombre">Pasivo No Corriente</td><td class="tag"></td></tr>
+            <tr class="n3"><td class="codigo">2201</td><td class="nombre">Préstamos por Pagar a Largo Plazo</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+
+            <tr class="n1"><td class="codigo">3</td><td class="nombre">PATRIMONIO</td><td class="tag"></td></tr>
+            <tr class="n3"><td class="codigo">3101</td><td class="nombre">Capital Social</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">3102</td><td class="nombre">Utilidades Retenidas</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">3103</td><td class="nombre">Utilidad (Pérdida) del Ejercicio</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+
+            <tr class="n1"><td class="codigo">4</td><td class="nombre">INGRESOS</td><td class="tag"></td></tr>
+            <tr class="n3"><td class="codigo">4101</td><td class="nombre">Ventas</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">4102</td><td class="nombre">Devoluciones sobre Ventas</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">4103</td><td class="nombre">Descuentos sobre Ventas</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">4104</td><td class="nombre">Otros Ingresos</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+
+            <tr class="n1"><td class="codigo">5</td><td class="nombre">COSTOS</td><td class="tag"></td></tr>
+            <tr class="n3"><td class="codigo">5101</td><td class="nombre">Costo de Ventas — Mercadería</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">5102</td><td class="nombre">Costo de Ventas — Ajustes / Mermas</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+
+            <tr class="n1"><td class="codigo">6</td><td class="nombre">GASTOS OPERATIVOS</td><td class="tag"></td></tr>
+            <tr class="n2"><td class="codigo">61</td><td class="nombre">Gastos de Venta</td><td class="tag"></td></tr>
+            <tr class="n3"><td class="codigo">6101</td><td class="nombre">Comisiones sobre Ventas</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">6102</td><td class="nombre">Fletes y Paquetería</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">6103</td><td class="nombre">Comisiones y Cargos de Pasarela de Pago</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n2"><td class="codigo">62</td><td class="nombre">Gastos de Administración</td><td class="tag"></td></tr>
+            <tr class="n3"><td class="codigo">6201</td><td class="nombre">Sueldos y Salarios</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">6202</td><td class="nombre">Cuotas Patronales (ISSS/AFP)</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">6203</td><td class="nombre">Alquileres</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">6204</td><td class="nombre">Compras Locales / Suministros Operativos</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">6205</td><td class="nombre">Otros Gastos Operativos</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n2"><td class="codigo">63</td><td class="nombre">Gastos Financieros</td><td class="tag"></td></tr>
+            <tr class="n3"><td class="codigo">6301</td><td class="nombre">Intereses Bancarios</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+            <tr class="n3"><td class="codigo">6302</td><td class="nombre">Comisiones Bancarias</td><td class="tag"><span class="post-tag">se postea aquí</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pagefoot">
+    <span>DISABI ERP — Manual del Contador, módulo Contabilidad</span>
+    <span>Corte contable: 2026-11-01</span>
+  </footer>
+</div>
